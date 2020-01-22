@@ -27,7 +27,8 @@ DEBUG = True
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
-    '192.168.43.123'
+    '192.168.43.123',
+    'mestar122.pythonanywhere.com'
 ]
 
 # Application definition
