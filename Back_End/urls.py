@@ -14,8 +14,46 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.conf.urls import url, include
+from django.http import HttpResponse
 from django.urls import path
+from users.models import User
+from json import loads
+
+
+def auth(name, password):
+    ret = 2
+    try:
+        u = User.objects.get(['name', name])
+        ret -= 1
+        if u.password == password:
+            ret -= 1
+    except Exception:
+        pass
+    return HttpResponse(ret)
+
+
+def auth_route(request):
+    dic = loads(request.body.decode('UTF-8'))
+    return auth(name=dic['name'], password=dic['password'])
+
+
+def create(request):
+    dic = loads(request.body.decode('UTF-8'))
+    from users.models import User
+    User.objects.create(
+        name=dic['name'],
+        password=dic['password'],
+        isAdmin=dic['isAdmin']
+    ).save()
+    return HttpResponse(0)
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    url('research/', include('Research.urls')),
+    url('univ/', include('University.urls')),
+    url('std/', include('Students.urls')),
+    url('auth/', auth_route),
+    url('create/', create),
 ]
