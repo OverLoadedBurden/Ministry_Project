@@ -18,11 +18,12 @@ from django.conf.urls import url, include
 from django.http import HttpResponse
 from django.urls import path
 from users.models import User
-from json import loads
+from json import loads, dumps
 
 
 def auth(name, password):
     ret = 2
+    u = None
     try:
         u = User.objects.get(['name', name])
         ret -= 1
@@ -31,6 +32,10 @@ def auth(name, password):
     except Exception:
         pass
     return HttpResponse(ret)
+
+
+def get_user(request):
+    return HttpResponse(dumps(User.objects.get(['name', request.GET.get('name')]).serialize()))
 
 
 def auth_route(request):
@@ -55,5 +60,6 @@ urlpatterns = [
     url('univ/', include('University.urls')),
     url('std/', include('Students.urls')),
     url('auth/', auth_route),
+    url('get_user/', get_user),
     url('create/', create),
 ]

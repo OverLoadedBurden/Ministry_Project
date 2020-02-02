@@ -25,7 +25,8 @@ def all(request):
     return HttpResponse(serialize_collection(Research.objects.all()))
 
 
-def by_std(request, std):
+def by_std(request):
+    std = request.GET.get('std')
     std = Student.objects.get(['collage_no', std])
     return HttpResponse(serialize_collection(Research.objects.filter(['std', std])))
 
@@ -52,15 +53,15 @@ def delete(request, id):
 
 def create(request):
     dic = loads(request.body.decode('UTF-8'))
-    if not dic.__contains('id'):
-        try:
+    if not dic.__contains__('id'):
+        # try:
             Research.objects.create(title=dic['title'], abstract=dic['abstract'],
                                     unv=University.objects.get(['name', dic['univ']]),
                                     std=Student.objects.get(['collage_no', dic['std']]),
-                                    user=User.objects.get(['name', dic['user']])).save()
+                                    user=User.objects.get(['name', dic['user']]))
             return HttpResponse(0)
-        except Exception:
-            return HttpResponse(1)
+        # except Exception:
+        #     return HttpResponse(1)
     else:
         try:
             r = Research.objects.get(['id', dic['id']])

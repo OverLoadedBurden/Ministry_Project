@@ -11,7 +11,7 @@ def search(request, id):
     def converter(o:bytes):
         # o.title()
         # b64decode(o.hex())
-        o.tit
+        # o.tit
         return f'{o.decode(encoding="ascii")}'
 
     s = Student.objects.get(collage_no=id)
