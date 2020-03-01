@@ -25,6 +25,21 @@ def all(request):
     return HttpResponse(serialize_collection(Research.objects.all()))
 
 
+def by_degree(request):
+    degree = request.GET.get('degree')
+    user = request.GET.get('user')
+    if user is not None:
+        user = User.objects.get(name=user)
+    return HttpResponse(serialize_collection(Research.objects.filter(degree=degree)))
+
+
+def by_degree_and_user(request):
+    degree = request.GET.get('degree')
+    user = request.GET.get('user')
+    user = User.objects.get(name=user)
+    return HttpResponse(serialize_collection(Research.objects.filter(degree=degree, user=user)))
+
+
 def by_std(request):
     std = request.GET.get('std')
     std = Student.objects.get(['collage_no', std])
@@ -55,17 +70,18 @@ def create(request):
     dic = loads(request.body.decode('UTF-8'))
     if not dic.__contains__('id'):
         # try:
-            Research.objects.create(title=dic['title'], abstract=dic['abstract'],
-                                    unv=University.objects.get(['name', dic['univ']]),
-                                    std=Student.objects.get(['collage_no', dic['std']]),
-                                    user=User.objects.get(['name', dic['user']]))
-            return HttpResponse(0)
-        # except Exception:
-        #     return HttpResponse(1)
+        Research.objects.create(title=dic['title'], abstract=dic['abstract'], degree=dic['degree'],
+                                unv=University.objects.get(['name', dic['univ']]),
+                                std=Student.objects.get(['collage_no', dic['std']]),
+                                user=User.objects.get(['name', dic['user']]))
+        return HttpResponse(0)
+    # except Exception:
+    #     return HttpResponse(1)
     else:
         try:
             r = Research.objects.get(['id', dic['id']])
             r.title = dic['title']
+            r.degree = dic['degree']
             r.abstract = dic['abstract']
             r.unv = University.objects.get(['name', dic['univ']])
             r.std = Student.objects.get(['collage_no', dic['std']])

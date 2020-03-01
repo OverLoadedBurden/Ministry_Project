@@ -9,4 +9,6 @@ urlpatterns = [
     url(r'^by_unv/', by_unv),
     url('all/', all),
     url('create/', create),
-    ]
+    url('by_degree_and_user', by_degree_and_user),
+    url('by_degree', by_degree)
+]

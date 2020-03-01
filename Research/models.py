@@ -9,7 +9,7 @@ from django_serializable_model import SerializableModel
 class Research(SerializableModel):
     title = models.TextField(null=False)
     abstract = models.TextField(null=False)
-    # research = models.BinaryField(null=False)
+    degree = models.CharField(null=False, max_length=55)
     date = models.DateTimeField(default=timezone.now)
     std = models.ForeignKey(Student, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)

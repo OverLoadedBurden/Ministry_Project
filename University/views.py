@@ -1,6 +1,6 @@
 from django.shortcuts import render, HttpResponse
 from django.core.serializers import serialize
-from json import loads
+from json import loads, dumps
 from base64 import b64decode
 from .models import University
 
@@ -8,6 +8,11 @@ from .models import University
 # Create your views here.
 def get_univs(request):
     return HttpResponse(serialize('json', University.objects.all()))
+
+
+def get(request):
+    id = request.GET.get('id')
+    return HttpResponse(serialize('json', [University.objects.get(['name', id])]))
 
 
 def delete(request):

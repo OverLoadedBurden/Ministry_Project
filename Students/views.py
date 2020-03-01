@@ -2,17 +2,13 @@ from django.shortcuts import render, HttpResponse
 from json import loads, dumps
 from Students.models import Student
 from University.models import University
-from base64 import b64encode, encodebytes,b64decode
+from base64 import b64encode, encodebytes, b64decode
 
 
 # Create your views here.
 def search(request, id):
-    # try:
-    def converter(o:bytes):
-        # o.title()
-        # b64decode(o.hex())
-        # o.tit
-        return f'{o.decode(encoding="ascii")}'
+    def converter(object):
+        return object.__str__()
 
     s = Student.objects.get(collage_no=id)
     joins = ['university']
@@ -31,4 +27,15 @@ def create(request):
         ph=dic['ph'],
         university=University.objects.get(['name', dic['uni']])
     ).save()
+    return HttpResponse(0)
+
+
+def update(request):
+    dic = loads(request.body.decode('UTF-8'))
+    std = Student.objects.get(collage_no=dic['old'])
+    std.collage_no = dic['no']
+    std.name = dic['name']
+    std.ph = dic['ph']
+    std.university = University.objects.get(['name', dic['uni']])
+    std.save(force_update=True)
     return HttpResponse(0)
