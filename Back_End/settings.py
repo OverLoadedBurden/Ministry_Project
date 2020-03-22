@@ -28,7 +28,8 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
     '192.168.43.123',
-    'mestar122.pythonanywhere.com'
+    '192.168.8.103',
+    'mestar121.pythonanywhere.com'
 ]
 
 # Application definition
@@ -42,8 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Research',
     'Students',
-    'University',
-    'users'
+    # 'University',
+    # 'Group',
+    'users',
 ]
 
 MIDDLEWARE = [

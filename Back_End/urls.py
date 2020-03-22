@@ -57,7 +57,6 @@ def create(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     url('research/', include('Research.urls')),
-    url('univ/', include('University.urls')),
     url('std/', include('Students.urls')),
     url('auth/', auth_route),
     url('get_user/', get_user),

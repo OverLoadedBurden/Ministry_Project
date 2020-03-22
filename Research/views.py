@@ -2,14 +2,9 @@ from django.shortcuts import render, HttpResponse
 from .models import Research
 from Students.models import Student
 from json import loads, dumps
+from base64 import b64decode, b64encode
 from django.core.serializers import serialize
-from University.models import University
 from users.models import User
-
-
-#
-# def get_research_dict(res: Research) -> dict:
-#     res.__dict__
 
 
 # Create your views here.
@@ -17,76 +12,93 @@ def serialize_collection(collection):
     def converter(object):
         return object.__str__()
 
-    joins = ['std', 'user', 'unv']
-    return dumps(collection.serialize(*joins), default=converter)
+    joins = ['student_set']
+    l = []
+    for i in collection:
+        d = i.serialize(*joins)
+        res = d['research']
+        del d['research']
+        if res is not None:
+            # /////
+            d['research'] = b64encode(res).decode('UTF-8')
+        l.append(d)
+    return dumps(l, default=converter)
 
 
 def all(request):
     return HttpResponse(serialize_collection(Research.objects.all()))
 
 
-def by_degree(request):
-    degree = request.GET.get('degree')
-    user = request.GET.get('user')
-    if user is not None:
-        user = User.objects.get(name=user)
-    return HttpResponse(serialize_collection(Research.objects.filter(degree=degree)))
-
-
-def by_degree_and_user(request):
-    degree = request.GET.get('degree')
-    user = request.GET.get('user')
-    user = User.objects.get(name=user)
-    return HttpResponse(serialize_collection(Research.objects.filter(degree=degree, user=user)))
-
-
-def by_std(request):
-    std = request.GET.get('std')
-    std = Student.objects.get(['collage_no', std])
-    return HttpResponse(serialize_collection(Research.objects.filter(['std', std])))
-
-
-def by_unv(request):
-    unv = request.GET.get('unv')
-    unv = University.objects.get(['name', unv])
-    return HttpResponse(serialize_collection(Research.objects.filter(['unv', unv])))
-    # print(unv)
-    return HttpResponse(unv)
-
-
 def by_name(request):
     title = request.GET.get('title')
     return HttpResponse(serialize_collection(Research.objects.filter(title__contains=title)))
-    # print('name=\'' + title + '\'')
-    # return HttpResponse(title)
+
+
+def byType(request):
+    type = request.GET.get('type')
+    return HttpResponse(serialize_collection(Research.objects.filter(type=type)))
+
+
+def by_type(request):
+    type = request.GET.get('type')
+    return HttpResponse(serialize_collection(Research.objects.filter(type__contains=type)))
+
+
+def search(request):
+    # def serialize_collection(collection):
+    #     def converter(object):
+    #         if type(object) is bytes:
+    #             return None
+    #         return object.__str__()
+    #
+    #     joins = ['student_set']
+    #     l = []
+    #     for i in collection:
+    #         l.append(i.serialize(*joins))
+    #     return dumps(l, default=converter)
+
+    map = loads(request.body.decode('UTF-8'))
+    # first search the name
+    rs = Research.objects.filter(title__contains=map['name'])
+    # add the results to the manipulated set
+    l = [*rs]
+
+    # second search the type if the type is not any
+    if map['type'] != 'any':
+        rs = rs.filter(type__contains=map['type'])
+
+    # third part is to remove any element that does not have  meet the number condition
+    if map['no'] == 0:
+        # return HttpResponse(len(l))
+        return HttpResponse(serialize_collection(l))
+    for r in l:
+        if map['op'] == 0:
+            if r.student_set.count() != map['no']:
+                l.remove(r)
+        if map['op'] == 1:
+            if r.student_set.count() >= map['no']:
+                l.remove(r)
+        if map['op'] == 2:
+            if r.student_set.count() <= map['no']:
+                l.remove(r)
+    # return HttpResponse(len(l))
+    return HttpResponse(serialize_collection(l))
 
 
 def delete(request, id):
-    Research.objects.get(['id', id]).delete()
+    # print(id)
+    # return HttpResponse(id)
+    Research.objects.get(id=id).delete()
     return HttpResponse(0)
 
 
 def create(request):
     dic = loads(request.body.decode('UTF-8'))
-    if not dic.__contains__('id'):
-        # try:
-        Research.objects.create(title=dic['title'], abstract=dic['abstract'], degree=dic['degree'],
-                                unv=University.objects.get(['name', dic['univ']]),
-                                std=Student.objects.get(['collage_no', dic['std']]),
-                                user=User.objects.get(['name', dic['user']]))
-        return HttpResponse(0)
-    # except Exception:
-    #     return HttpResponse(1)
-    else:
-        try:
-            r = Research.objects.get(['id', dic['id']])
-            r.title = dic['title']
-            r.degree = dic['degree']
-            r.abstract = dic['abstract']
-            r.unv = University.objects.get(['name', dic['univ']])
-            r.std = Student.objects.get(['collage_no', dic['std']])
-            r.user = User.objects.get(['name', dic['user']])
-            r.save()
-            return HttpResponse(10)
-        except Exception:
-            return HttpResponse(11)
+    set = []
+    for s in dic['stds']:
+        set.append(Student.objects.get(pk=s))
+    r = Research.objects.create(title=dic['title'], type=dic['type'], research=b64decode(dic['research']))
+    r.save()
+    r.student_set.add(*set)
+    r.save()
+    return HttpResponse('0')
